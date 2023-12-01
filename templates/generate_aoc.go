@@ -85,7 +85,7 @@ func Test_solvePart1(t *testing.T) {
 			tn := time.Now()
 			got := solvePart1(input)
 			if got != tt.want && !ok {
-				t.Errorf("solvePart1() = %v, want %v", got, tt.want)
+				t.Errorf("got = %v, want %v", got, tt.want)
 			}
 
 			// print answer to stdout for piping
@@ -157,7 +157,7 @@ func Test_solvePart2(t *testing.T) {
 			tn := time.Now()
 			got := solvePart2(input)
 			if got != tt.want && !ok {
-				t.Errorf("solvePart2() = %v, want %v", got, tt.want)
+				t.Errorf("got = %v, want %v", got, tt.want)
 			}
 
 			// print answer to stdout for piping
