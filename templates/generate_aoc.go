@@ -74,6 +74,13 @@ func Test_solvePart1(t *testing.T) {
 				t.Fatal(err)
 			}
 			_, ok := os.LookupEnv("_SUBMIT")
+			if tt.want == 0 && !ok {
+				t.Skip()
+			}
+
+			if tt.want != 0 && ok {
+				t.Skip()
+			}
 
 			tn := time.Now()
 			got := solvePart1(input)
@@ -138,6 +145,14 @@ func Test_solvePart2(t *testing.T) {
 				t.Fatal(err)
 			}
 			_, ok := os.LookupEnv("_SUBMIT")
+			if tt.want == 0 && !ok {
+				t.Skip()
+			}
+
+			if tt.want != 0 && ok {
+				t.Skip()
+			}
+
 
 			tn := time.Now()
 			got := solvePart2(input)
