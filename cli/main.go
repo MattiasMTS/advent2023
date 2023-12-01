@@ -23,7 +23,7 @@ var (
 	// reAnswer is the stdout for correct answer
 	reAnswer = regexp.MustCompile("got: ([0-9]+)")
 	// reTime is the stdout for time taken
-	reTime = regexp.MustCompile(`took: ([^===]+)`)
+	reTime = regexp.MustCompile(`took: ([^---]+)`)
 	// errTooQuick is the stdout for submitting too quickly
 	errTooQuick = regexp.MustCompile("You gave an answer too recently.*to wait.")
 	// errWrong is the stdout for wrong answer
