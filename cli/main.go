@@ -29,7 +29,7 @@ var (
 	// errWrong is the stdout for wrong answer
 	errWrong = regexp.MustCompile(`That's not the right answer.*?\.`)
 	// errCorrect is the stdout for correct answer
-	errCorrect = "That's the right answer!"
+	errCorrect = regexp.MustCompile("That's the right answer!")
 	// errAlreadyDone is the stdout for already solved puzzle
 	errAlreadyDone = regexp.MustCompile(`You don't seem to be solving.*\?`)
 	// sessionToken is the cookie value for session
@@ -239,7 +239,7 @@ func submit(answer, year, day, part string) (string, error) {
 }
 
 func checkResponse(resp string) string {
-	for _, r := range []*regexp.Regexp{errTooQuick, errWrong, errAlreadyDone} {
+	for _, r := range []*regexp.Regexp{errTooQuick, errWrong, errAlreadyDone, errCorrect} {
 		m := r.FindString(resp)
 		if m != "" {
 			return m
