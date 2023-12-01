@@ -1,5 +1,5 @@
 year := $(shell date +'%Y')
-day := $(shell date +'%-d'))
+day := $(shell date +'%-d')
 part := 1
 
 .PHONY: test
