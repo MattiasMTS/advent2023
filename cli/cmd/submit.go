@@ -17,6 +17,15 @@ var submitCmd = &cli.Command{
 	Flags:       setSubmitFlags(),
 }
 
+// parseStdout parses the stdout from the pipe.
+// Ideally retuns the answer and time taken.
+func parseStdout(in string) (string, string) {
+	answer := reAnswer.FindStringSubmatch(in)
+	time := reTime.FindStringSubmatch(in)
+
+	return answer[1], time[1]
+}
+
 // runSubmit runs the submit command.
 func runSubmit(c *cli.Context) error {
 	in := getPipedStdinData()
@@ -24,13 +33,9 @@ func runSubmit(c *cli.Context) error {
 		return fmt.Errorf("error piping, got value: %q", in)
 	}
 
-	answer := reAnswer.FindStringSubmatch(in)
-	time := reTime.FindStringSubmatch(in)
+	answer, _ := parseStdout(in)
 
-	fmt.Println(answer[1])
-	fmt.Println(time[1])
-
-	resp, err := submit(answer[1], c.String("year"), c.String("day"), c.String("part"))
+	resp, err := submit(answer, c.String("year"), c.String("day"), c.String("part"))
 	if err != nil {
 		return fmt.Errorf("error submitting: %w", err)
 	}
