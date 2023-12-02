@@ -16,10 +16,10 @@ permissions:
   issues: read
 
 jobs:
-  build-run:
+  bootstrap:
     runs-on: ubuntu-22.04
     outputs:
-      benchmark: ${{ steps.benchmark.outputs.out }}
+      benchmark: ${{ steps.benchmark.outputs.BENCHMARK_RESULTS }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v4
@@ -37,33 +37,70 @@ jobs:
       - name: Run aoc cli and save stdout
         id: benchmark
         run: |
-          echo "::set-output name=out::$(go run ./cli/main.go benchmark)" >> $GITHUB_ENV
+          {
+            echo 'BENCHMARK_RESULTS<<EOF'
+            go run ./cli/main.go benchmark
+            echo EOF
+          } >> "$GITHUB_OUTPUT"
 
   table-to-readme:
-    needs: [build-run]
+    needs: [bootstrap]
     runs-on: ubuntu-22.04
+    env:
+      BENCHMARK_RESULTS: ${{ needs.bootstrap.outputs.benchmark }}
     steps:
       - uses: actions/checkout@v4
-      - run: echo "BENCHMARK_OUTPUT=${{ needs.build-run.outputs.benchmark }}" >> $GITHUB_ENV
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install @octokit/rest
+
       - uses: actions/github-script@v6
         with:
           debug: true
           script: |
             const fs = require('fs');
 
-            // Read the current content of the README file
+            const octokit = new Octokit({
+              auth: process.env.GITHUB_TOKEN,
+              request: { fetch },
+            });
+
+            const sectionHeading = '## Benchmark\n';
+
             let readmeContent = fs.readFileSync('README.md', 'utf-8');
 
-            // Your content to append to the README
-            const contentToAppend = process.env.BENCHMARK_OUTPUT
+            const newContent = process.env.BENCHMARK_RESULTS
 
-            // Check if contentToAppend is not empty
-            if (contentToAppend) {
-              // Append the content to the README
-              readmeContent += `\n\n## Benchmark\n${contentToAppend}`;
+            console.log(newContent)
 
-              // Write the updated content back to the README file
-              fs.writeFileSync('README.md', readmeContent);
-            } else {
-              console.log('No content found in BENCHMARK_OUTPUT. Skipping README update.');
+            if (!newContent) {
+              console.log('No new content to update. Exiting the program.');
+              process.exit(0);
             }
+
+
+            if (readmeContent.includes(sectionHeading)) {
+              const regex = new RegExp(`(${sectionHeading}[\\s\\S]*?)(?:\n\n|$)`);
+              readmeContent = readmeContent.replace(regex, `${sectionHeading}\n${newContent}\n\n`);
+            } else {
+              readmeContent += `\n\n${sectionHeading}\n${newContent}\n`;
+            }
+
+            const readmeResponse = await octokit.repos.getReadme({
+              owner: 'MattiasMTS',
+              repo: 'advent2023',
+            });
+
+            await octokit.repos.createOrUpdateFileContents({
+              owner: 'MattiasMTS',
+              repo: 'advent2023',
+              path: 'README.md',
+              message: 'chore: update table 🌟',
+              content: Buffer.from(readmeContent).toString('base64'),
+              sha: readmeResponse.data.sha
+            });
+            console.log('Successfully updated README.md');

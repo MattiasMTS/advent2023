@@ -109,3 +109,8 @@ The repository is structured as follows:
   ```
 
   where you have to manually add the input and answer on the TODOs.
+
+
+## Benchmark
+
++------------------------------------+
