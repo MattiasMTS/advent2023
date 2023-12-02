@@ -49,6 +49,7 @@ Advent of Code CLI
 	App.Commands = []*cli.Command{
 		submitCmd,
 		inputCmd,
+		benchmarkCmd,
 	}
 }
 
