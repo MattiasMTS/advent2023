@@ -1,5 +1,6 @@
 name: "benchmark aoc"
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
@@ -63,13 +64,15 @@ jobs:
           debug: true
           script: |
             const fs = require('fs');
+            const { Octokit } = require('@octokit/rest');
+
 
             const octokit = new Octokit({
               auth: process.env.GITHUB_TOKEN,
               request: { fetch },
             });
 
-            const sectionHeading = '## Benchmark\n';
+            const sectionHeading = '# 🏋️Benchmark 🏋️\n';
 
             let readmeContent = fs.readFileSync('README.md', 'utf-8');
 
