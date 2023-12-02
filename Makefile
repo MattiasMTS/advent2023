@@ -25,3 +25,7 @@ submit:
 	else \
 		_SUBMIT=1 go test ./day$(day) -v -run=solvePart$(part) | go run ./cli/main.go submit -d $(day) -y $(year) -p $(part) ; \
 	fi
+
+.PHONY: benchmark
+benchmark:
+	@go run ./cli/main.go benchmark
