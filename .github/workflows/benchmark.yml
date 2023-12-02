@@ -1,0 +1,69 @@
+name: "benchmark aoc"
+on:
+  push:
+    branches:
+      - main
+
+concurrency: pr-${{ github.event.issue.number }}
+
+env:
+  GOVERSION: 1.21.4
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+permissions:
+  contents: write
+  pull-requests: read
+  issues: read
+
+jobs:
+  build-run:
+    runs-on: ubuntu-22.04
+    outputs:
+      benchmark: ${{ steps.benchmark.outputs.out }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v4
+        with:
+          go-version: ${{ env.GOVERSION }}
+          cache: true
+      - uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg
+          key: ${{ runner.os }}-go-build-${{ env.GOVERSION }}-${{ hashFiles('**/go.sum') }}-
+      - name: Add token to .env
+        run: echo "SESSION_TOKEN=${{ secrets.SESSION_TOKEN }}" > .env
+      - name: Run aoc cli and save stdout
+        id: benchmark
+        run: |
+          echo "::set-output name=out::$(go run ./cli/main.go benchmark)" >> $GITHUB_ENV
+
+  table-to-readme:
+    needs: [build-run]
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - run: echo "BENCHMARK_OUTPUT=${{ needs.build-run.outputs.benchmark }}" >> $GITHUB_ENV
+      - uses: actions/github-script@v6
+        with:
+          debug: true
+          script: |
+            const fs = require('fs');
+
+            // Read the current content of the README file
+            let readmeContent = fs.readFileSync('README.md', 'utf-8');
+
+            // Your content to append to the README
+            const contentToAppend = process.env.BENCHMARK_OUTPUT
+
+            // Check if contentToAppend is not empty
+            if (contentToAppend) {
+              // Append the content to the README
+              readmeContent += `\n\n## Benchmark\n${contentToAppend}`;
+
+              // Write the updated content back to the README file
+              fs.writeFileSync('README.md', readmeContent);
+            } else {
+              console.log('No content found in BENCHMARK_OUTPUT. Skipping README update.');
+            }
