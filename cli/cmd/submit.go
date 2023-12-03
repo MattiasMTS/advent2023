@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"net/url"
 	"strings"
@@ -22,6 +23,9 @@ var submitCmd = &cli.Command{
 func parseStdout(in string) (string, string) {
 	answer := reAnswer.FindStringSubmatch(in)
 	time := reTime.FindStringSubmatch(in)
+	if len(answer) < 2 || len(time) < 2 {
+		log.Fatalf("failed to parse stdout: %q", in)
+	}
 
 	return answer[1], time[1]
 }
@@ -33,7 +37,8 @@ func runSubmit(c *cli.Context) error {
 		return fmt.Errorf("error piping, got value: %q", in)
 	}
 
-	answer, _ := parseStdout(in)
+	answer, time := parseStdout(in)
+	fmt.Printf("answer: %v, time: %v\n", answer, time)
 
 	resp, err := submit(answer, c.String("year"), c.String("day"), c.String("part"))
 	if err != nil {
